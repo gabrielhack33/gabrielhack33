@@ -3,33 +3,9 @@
 ]]
 --Script found on this guys GitHub: https://github.com/LOOF-sys
 
-assert(Drawing, 'exploit not supported')
-
-if not syn and not PROTOSMASHER_LOADED then print'Unnamed ESP only officially supports Synapse and Protosmasher! If you\'re an exploit developer and have added drawing API to your exploit, try setting syn as true then checking if that works, otherwise, DM me on discord @ cppbook.org#1968 or add an issue to the Unnamed ESP Github Repository and I\'ll see it through email!' end
-
-local UserInputService	= game:GetService'UserInputService';
-local HttpService	= game:GetService'HttpService';
-local GUIService	= game:GetService'GuiService';
-local TweenService	= game:GetService'TweenService';
-local RunService	= game:GetService'RunService';
-local Players		= game:GetService'Players';
-local LocalPlayer	= Players.LocalPlayer;
-local Camera		= workspace.CurrentCamera;
-local Mouse		= LocalPlayer:GetMouse();
-local V2New		= Vector2.new;
-local V3New		= Vector3.new;
-local WTVP		= Camera.WorldToViewportPoint;
-local WorldToViewport	= function(...) return WTVP(Camera, ...) end;
-local Menu		= {};
 local MouseHeld		= false;
 local LastRefresh	= 0;
-local OptionsFile	= 'IC3_ESP_SETTINGS.dat';
-local Binding		= false;
-local BindedKey		= nil;
-local OIndex		= 0;
-local LineBox		= {};
-local UIButtons		= {};
-local Sliders		= {};
+
 local ColorPicker	= { Loading = false; LastGenerated = 0 };
 local Dragging		= false;
 local DraggingUI	= false;
@@ -54,125 +30,21 @@ local Spectating;
 
 local scriptware = identifyexecutor()
 
-local Executor = (identifyexecutor or (function() return '' end))()
-local SupportedExploits = { 'Synapse X', 'ScriptWare', 'Krnl', 'OxygenU' , scriptware}
-local QUAD_SUPPORTED_EXPLOIT = table.find(SupportedExploits, Executor) ~= nil
-
--- if not PROTOSMASHER_LOADED then Drawing.UseCompatTransparency = true; end -- For Elysian
-
-shared.MenuDrawingData	= shared.MenuDrawingData or { Instances = {} };
-shared.InstanceData	= shared.InstanceData or {};
-shared.RSName		= shared.RSName or ('UnnamedESP_by_gh3-' .. HttpService:GenerateGUID(false));
-
-local GetDataName	= shared.RSName .. '-GetData';
-local UpdateName	= shared.RSName .. '-Update';
-
-local Debounce		= setmetatable({}, {
-	__index = function(t, i)
-		return rawget(t, i) or false
-	end;
-});
-
-if shared.UESP_InputChangedCon then shared.UESP_InputChangedCon:Disconnect() end
-if shared.UESP_InputBeganCon then shared.UESP_InputBeganCon:Disconnect() end
-if shared.UESP_InputEndedCon then shared.UESP_InputEndedCon:Disconnect() end
-if shared.CurrentColorPicker then shared.CurrentColorPicker:Dispose() end
-
-local RealPrint, LastPrintTick = print, 0;
-local LatestPrints = setmetatable({}, { __index = function(t, i) return rawget(t, i) or 0 end });
-
-local function print(...)
-	local Content = unpack{...};
-	local print = RealPrint;
-
-	if tick() - LatestPrints[Content] > 5 then
-		LatestPrints[Content] = tick();
-		print(Content);
-	end
-end
-
-local function FromHex(HEX)
-	HEX = HEX:gsub('#', '');
-	
-	return Color3.fromRGB(tonumber('0x' .. HEX:sub(1, 2)), tonumber('0x' .. HEX:sub(3, 4)), tonumber('0x' .. HEX:sub(5, 6)));
-end
-
-local function IsStringEmpty(String)
-	if type(String) == 'string' then
-		return String:match'^%s+$' ~= nil or #String == 0 or String == '' or false;
-	end
-	
-	return false;
-end
-
-local function Set(t, i, v)
-	t[i] = v;
-end
-
-local Teams = {};
-local CustomTeams = { -- Games that don't use roblox's team system
-	[2563455047] = {
-		Initialize = function()
-			Teams.Sheriffs = {}; -- prevent big error
-			Teams.Bandits = {}; -- prevent big error
-			local Func = game:GetService'ReplicatedStorage':WaitForChild('RogueFunc', 1);
-			local Event = game:GetService'ReplicatedStorage':WaitForChild('RogueEvent', 1);
-			local S, B = Func:InvokeServer'AllTeamData';
-
-			Teams.Sheriffs = S;
 			Teams.Bandits = B;
 
 			Event.OnClientEvent:Connect(function(id, PlayerName, Team, Remove) -- stolen straight from decompiled src lul
-				if id == 'UpdateTeam' then
-					local TeamTable, NotTeamTable
-					if Team == 'Bandits' then
-						TeamTable = TDM.Bandits
-						NotTeamTable = TDM.Sheriffs
-					else
-						TeamTable = TDM.Sheriffs
-						NotTeamTable = TDM.Bandits
-					end
-					if Remove then
-						TeamTable[PlayerName] = nil
-					else
-						TeamTable[PlayerName] = true
+		
 						NotTeamTable[PlayerName] = nil
-					end
-					if PlayerName == LocalPlayer.Name then
-						TDM.Friendlys = TeamTable
-						TDM.Enemies = NotTeamTable
-					end
-				end
-			end)
-		end;
-		CheckTeam = function(Player)
-			local LocalTeam = Teams.Sheriffs[LocalPlayer.Name] and Teams.Sheriffs or Teams.Bandits;
 			
-			return LocalTeam[Player.Name] and true or false;
-		end;
-	};
-	[5208655184] = {
-		CheckTeam = function(Player)
-			local LocalLastName = LocalPlayer:GetAttribute'LastName' if not LocalLastName or IsStringEmpty(LocalLastName) then return true end
-			local PlayerLastName = Player:GetAttribute'LastName' if not PlayerLastName then return false end
-
-			return PlayerLastName == LocalLastName
-		end
+			retuw
 	};
 	[3541987450] = {
-		CheckTeam = function(Player)
-			local LocalStats = LocalPlayer:FindFirstChild'leaderstats';
+		derstats';
 			local LocalLastName = LocalStats and LocalStats:FindFirstChild'LastName'; if not LocalLastName or IsStringEmpty(LocalLastName.Value) then return true; end
 			local PlayerStats = Player:FindFirstChild'leaderstats';
 			local PlayerLastName = PlayerStats and PlayerStats:FindFirstChild'LastName'; if not PlayerLastName then return false; end
 
-			return PlayerLastName.Value == LocalLastName.Value;
-		end;
-	};
-};
-
-local RenderList = {Instances = {}};
-
+		daw	read w d wd W dAWd
 function RenderList:AddOrUpdateInstance(Instance, Obj2Draw, Text, Color)
 	RenderList.Instances[Instance] = { ParentInstance = Instance; Instance = Obj2Draw; Text = Text; Color = Color };
 	return RenderList.Instances[Instance];
